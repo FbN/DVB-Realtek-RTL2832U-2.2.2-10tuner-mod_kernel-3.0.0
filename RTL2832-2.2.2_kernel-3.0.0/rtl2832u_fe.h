@@ -47,13 +47,13 @@ typedef enum{
 //3  state of total device 
 struct rtl2832_state {
 	struct dvb_frontend			frontend;
-	struct dvb_frontend_parameters	fep;	
+//	struct dvb_frontend_parameters	fep;	
 	struct dvb_usb_device*		d;
 
 	struct mutex					i2c_repeater_mutex;
 
-       unsigned long					current_frequency;	
-	enum fe_bandwidth			current_bandwidth;		
+        unsigned long					current_frequency;	
+	u32 					current_bandwidth;		
 	   
 	RTL2832_TUNER_TYPE			tuner_type;
 	unsigned char					is_mt2266_nim_module_built;  //3 For close MT handle

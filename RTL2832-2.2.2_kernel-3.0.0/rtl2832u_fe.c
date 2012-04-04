@@ -978,7 +978,7 @@ check_dvbt_reset_parameters(
 
 	struct rtl2832_state*	p_state,
 	unsigned long			frequency,
-	enum fe_bandwidth	bandwidth,	
+	u32	bandwidth,	
 	int*					reset_needed)
 {
 
@@ -1501,13 +1501,14 @@ rtl2832_sleep(
 
 static int
 rtl2840_set_parameters(
-	struct dvb_frontend*	fe,
-	struct dvb_frontend_parameters*	param)
+	struct dvb_frontend*	fe
+	)
 {
 
 	struct rtl2832_state				*p_state = fe->demodulator_priv;
-	struct dvb_qam_parameters 		*p_qam_param= &param->u.qam;
-	unsigned long						frequency = param->frequency;
+	struct dtv_frontend_properties 		*fep = &fe->dtv_property_cache;
+//	struct dvb_qam_parameters 		*p_qam_param= &param->u.qam;
+	unsigned long						frequency = fep->frequency;
 
 	DVBT_DEMOD_MODULE				*pDemod2832;
 	int								QamMode;
@@ -1522,11 +1523,11 @@ rtl2840_set_parameters(
 	 }
 
 
-	deb_info(" +%s Freq=%lu , Symbol rate=%u, QAM=%u\n", __FUNCTION__, frequency, p_qam_param->symbol_rate, p_qam_param->modulation);
+	deb_info(" +%s Freq=%lu , Symbol rate=%u, QAM=%u\n", __FUNCTION__, frequency, fep->symbol_rate, fep->modulation);
 
 	pDemod2832 = p_state->pNim->pDemod;
 
-	switch(p_qam_param->modulation)
+	switch(fep->modulation)
 	{
 		case QPSK :		QamMode = QAM_QAM_4;		break;
 		case QAM_16 :	QamMode = QAM_QAM_16;		break;
@@ -1548,7 +1549,7 @@ rtl2840_set_parameters(
 	// Enable demod DVBT_IIC_REPEAT.
 	if(pDemod2832->SetRegBitsWithPage(pDemod2832,  DVBT_IIC_REPEAT, 0x1) )   goto error;	
 	
-	p_state->pNim2840->SetParameters(p_state->pNim2840, frequency, QamMode, p_qam_param->symbol_rate, QAM_ALPHA_0P15);
+	p_state->pNim2840->SetParameters(p_state->pNim2840, frequency, QamMode, fep->symbol_rate, QAM_ALPHA_0P15);
 
 	// Disable demod DVBT_IIC_REPEAT.
 	if(pDemod2832->SetRegBitsWithPage(pDemod2832, DVBT_IIC_REPEAT, 0x0))  goto error;
@@ -1575,13 +1576,12 @@ mutex_error:
 
 static int
 rtl2832_set_parameters(
-	struct dvb_frontend*	fe,
-	struct dvb_frontend_parameters*	param)
+	struct dvb_frontend*	fe)
 {
 	struct rtl2832_state			*p_state = fe->demodulator_priv;
-	struct dvb_ofdm_parameters	*p_ofdm_param= &param->u.ofdm;
-
-	unsigned long					frequency = param->frequency;
+//	struct dvb_ofdm_parameters	*p_ofdm_param= &param->u.ofdm;
+	struct dtv_frontend_properties 		*fep = &fe->dtv_property_cache;
+	unsigned long					frequency = fep->frequency;
 	int							bandwidth_mode;
 	int							is_signal_present;
 	int							reset_needed;
@@ -1608,11 +1608,11 @@ rtl2832_set_parameters(
 
 	if( mutex_lock_interruptible(&p_state->i2c_repeater_mutex) )	goto mutex_error;
 	
-	deb_info(" +%s frequency = %lu , bandwidth = %u\n", __FUNCTION__, frequency ,p_ofdm_param->bandwidth);
+	deb_info(" +%s frequency = %lu , bandwidth = %u\n", __FUNCTION__, frequency ,fep->bandwidth_hz);
 
 	if(p_state->demod_type == RTL2832)
 	{
-		if ( check_dvbt_reset_parameters( p_state , frequency , p_ofdm_param->bandwidth, &reset_needed) ) goto error;
+		if ( check_dvbt_reset_parameters( p_state , frequency , fep->bandwidth_hz, &reset_needed) ) goto error;
 
 		if( reset_needed == 0 )
 		{
@@ -1620,17 +1620,17 @@ rtl2832_set_parameters(
 			return 0;
 		}
 
-		switch (p_ofdm_param->bandwidth) 
+		switch (fep->bandwidth_hz) 
 	      {
-		case BANDWIDTH_6_MHZ:
+		case 6000000:
 		bandwidth_mode = DVBT_BANDWIDTH_6MHZ; 	
 		break;
 		
-		case BANDWIDTH_7_MHZ:
+		case 7000000:
 		bandwidth_mode = DVBT_BANDWIDTH_7MHZ;
 		break;
 		
-		case BANDWIDTH_8_MHZ:
+		case 8000000:
 		default:
 		bandwidth_mode = DVBT_BANDWIDTH_8MHZ;	
 		break;
@@ -1790,7 +1790,7 @@ rtl2832_set_parameters(
 //#endif
 	
 	p_state->current_frequency = frequency;	
-	p_state->current_bandwidth = p_ofdm_param->bandwidth;	
+	p_state->current_bandwidth = fep->bandwidth_hz;	
 
 	deb_info(" -%s \n", __FUNCTION__);
 
@@ -1815,8 +1815,7 @@ mutex_error:
 
 static int 
 rtl2832_get_parameters(
-	struct dvb_frontend*	fe,
-	struct dvb_frontend_parameters*	param)
+	struct dvb_frontend*	fe)
 {
 	//struct rtl2832_state* p_state = fe->demodulator_priv;
 	return 0;
@@ -2460,17 +2459,17 @@ struct dvb_frontend* rtl2832u_fe_attach(struct dvb_usb_device *d)
 	{
 		case RTL2832:
 			memcpy(&p_state->frontend.ops, &rtl2832_dvbt_ops, sizeof(struct dvb_frontend_ops));
-			memset(&p_state->fep, 0, sizeof(struct dvb_frontend_parameters));
+			//memset(&p_state->fep, 0, sizeof(struct dvb_frontend_parameters));
 			
 		break;
 		case RTL2836:	
 			memcpy(&p_state->frontend.ops, &rtl2836_dtmb_ops, sizeof(struct dvb_frontend_ops));
-			memset(&p_state->fep, 0, sizeof(struct dvb_frontend_parameters));
+			//memset(&p_state->fep, 0, sizeof(struct dvb_frontend_parameters));
 		break;
 
 		case RTL2840:
 			memcpy(&p_state->frontend.ops, &rtl2840_dvbc_ops, sizeof(struct dvb_frontend_ops));
-			memset(&p_state->fep, 0, sizeof(struct dvb_frontend_parameters));
+			//memset(&p_state->fep, 0, sizeof(struct dvb_frontend_parameters));
 		break;	
 	}	
 	
@@ -2540,6 +2539,7 @@ static struct dvb_frontend_ops rtl2840_dvbc_ops = {
 
 
 static struct dvb_frontend_ops rtl2832_dvbt_ops = {
+    .delsys =  {SYS_DVBT },
     .info = {
         .name               = "Realtek DVB-T RTL2832",
         .type               = FE_OFDM,
