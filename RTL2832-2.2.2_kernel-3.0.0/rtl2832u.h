@@ -1,3 +1,4 @@
+
 #ifndef _RTL2832U_H_
 #define _RTL2832U_H_
 
@@ -47,6 +48,9 @@
 #endif
 #define	USB_PID_TERRATEC_00A9					0x00A9
 #define	USB_PID_TERRATEC_00B3					0x00B3
+#define	USB_PID_TERRATEC_00D3					0x00D3
+#define	USB_PID_TERRATEC_00D4					0x00D4
+#define	USB_PID_TERRATEC_00E0					0x00E0
 
 #ifndef USB_VID_AZUREWAVE_2
 	#define	USB_VID_AZUREWAVE_2					0x13D3
@@ -110,9 +114,6 @@
 #endif
 #define	USB_PID_LEADTEK_WARM_1					0x6680
 #define	USB_PID_LEADTEK_WARM_2					0x6F11
-#define	USB_PID_LEADTEK_WARM_3					0x6A03
-
-
 #ifndef  USB_VID_COMPRO
 	#define USB_VID_COMPRO						0x185B
 #endif 
@@ -127,6 +128,8 @@
 #define USB_PID_COMPRO_WARM_9530				0x9530
 #define USB_PID_COMPRO_WARM_9520				0x9520
 
+
+#define USB_PID_WINFAST_DTV_DONGLE_MINI				0x6a03
 
 #define RTD2831_URB_SIZE				4096// 39480
 #define RTD2831_URB_NUMBER				10 //  4

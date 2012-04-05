@@ -1,3 +1,4 @@
+
 #include <linux/module.h>
 #include <linux/version.h>
 
@@ -9,6 +10,10 @@
 #define V4L2_REFACTORED_MFE_CODE
 #endif
 
+/* FIXME: I do not know the exact V4L2_VERSION that introduced the refactored rc_map_table struct  */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,0,0)) || ((defined V4L2_VERSION) && (V4L2_VERSION >= 196608))
+#define V4L2_REFACTORED_RC_CODE
+#endif
 
 int dvb_usb_rtl2832u_debug=0;
 module_param_named(debug,dvb_usb_rtl2832u_debug, int, 0644);
@@ -627,7 +632,7 @@ static int rtl2832u_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
 			tableSize = ARRAY_SIZE(rtl2832u_rc_keys_map_table);
 			for (i = 0; i < tableSize; i++) {
 				if(rtl2832u_rc_keys_map_table[i].scancode == scancode ){
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,0,0)
+#ifdef V4L2_REFACTORED_RC_CODE
 					*event = rtl2832u_rc_keys_map_table[i].keycode;
 #else
 					*event = rtl2832u_rc_keys_map_table[i].event;
@@ -821,7 +826,6 @@ static struct usb_device_id rtl2832u_usb_table [] = {
 
 	{ USB_DEVICE(USB_VID_LEADTEK, USB_PID_LEADTEK_WARM_1)},		// 60			
 	{ USB_DEVICE(USB_VID_LEADTEK, USB_PID_LEADTEK_WARM_2)},		// 61
-	{ USB_DEVICE(USB_VID_LEADTEK, USB_PID_LEADTEK_WARM_3)},		
 
 	{ USB_DEVICE(USB_VID_YUAN, USB_PID_YUAN_WARM)},			//62
         { USB_DEVICE(USB_VID_YUAN, USB_PID_YUAN_WARM80)},		//63
@@ -838,8 +842,14 @@ static struct usb_device_id rtl2832u_usb_table [] = {
 	{ USB_DEVICE(USB_VID_COMPRO, USB_PID_COMPRO_WARM_9530)},	// 73  71																						//------rtl2832u_6th_properties(6)
 	{ USB_DEVICE(USB_VID_COMPRO,  USB_PID_COMPRO_WARM_9520)},	// 74
 	
-	{ USB_DEVICE(USB_VID_GOLDENBRIDGE, USB_PID_GOLDENBRIDGE_WARM)},	//75	
-													
+	{ USB_DEVICE(USB_VID_GOLDENBRIDGE, USB_PID_GOLDENBRIDGE_WARM)},	//75
+
+	{ USB_DEVICE(USB_VID_LEADTEK, USB_PID_WINFAST_DTV_DONGLE_MINI)},	// 76
+
+	{ USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_00D3)},		// 77
+	{ USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_00D4)},		// 78
+	{ USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_00E0)},		// 79
+
 	{ 0 },
 };
 
@@ -890,7 +900,7 @@ static struct dvb_usb_device_properties rtl2832u_1st_properties = {
 	
 	//remote control
 	.rc.legacy = {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,0,0)
+#ifdef V4L2_REFACTORED_RC_CODE
 		.rc_map_table = rtl2832u_rc_keys_map_table,             //user define key map
 		.rc_map_size  = ARRAY_SIZE(rtl2832u_rc_keys_map_table), //user define key map size	
 #else
@@ -988,7 +998,7 @@ static struct dvb_usb_device_properties rtl2832u_2nd_properties = {
 
 	//remote control
 	.rc.legacy = {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,0,0)
+#ifdef V4L2_REFACTORED_RC_CODE
 		.rc_map_table = rtl2832u_rc_keys_map_table,             //user define key map
 		.rc_map_size  = ARRAY_SIZE(rtl2832u_rc_keys_map_table), //user define key map size	
 #else
@@ -1088,7 +1098,7 @@ static struct dvb_usb_device_properties rtl2832u_3th_properties = {
 
 	//remote control
 	.rc.legacy = {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,0,0)
+#ifdef V4L2_REFACTORED_RC_CODE
 		.rc_map_table = rtl2832u_rc_keys_map_table,             //user define key map
 		.rc_map_size  = ARRAY_SIZE(rtl2832u_rc_keys_map_table), //user define key map size	
 #else
@@ -1191,7 +1201,7 @@ static struct dvb_usb_device_properties rtl2832u_4th_properties = {
 
 	//remote control
 	.rc.legacy = {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,0,0)
+#ifdef V4L2_REFACTORED_RC_CODE
 		.rc_map_table = rtl2832u_rc_keys_map_table,             //user define key map
 		.rc_map_size  = ARRAY_SIZE(rtl2832u_rc_keys_map_table), //user define key map size	
 #else
@@ -1202,7 +1212,7 @@ static struct dvb_usb_device_properties rtl2832u_4th_properties = {
 		.rc_interval  = RT_RC_POLLING_INTERVAL_TIME_MS,		
 	},
 	
-	.num_device_descs = 9,
+	.num_device_descs = 12,
 	.devices = {
 		{ .name = "DK DONGLE",
 		  .cold_ids = { NULL, NULL },
@@ -1249,8 +1259,25 @@ static struct dvb_usb_device_properties rtl2832u_4th_properties = {
 		  .cold_ids = { NULL, NULL },
 		  .warm_ids = { &rtl2832u_usb_table[35], NULL },
 		},				
-		
-		
+
+		{
+		  .name = "Terratec Cinergy T Stick RC (Rev.3)",
+		  .cold_ids = { NULL, NULL },
+		  .warm_ids = { &rtl2832u_usb_table[77], NULL },
+		},
+
+		{
+		  .name = "Terratec Cinergy T Stick BLACK (Rev.2)",
+		  .cold_ids = { NULL, NULL },
+		  .warm_ids = { &rtl2832u_usb_table[78], NULL },
+		},
+
+		{
+		  .name = "Terratec Noxon DAB Stick (Rev.2)",
+		  .cold_ids = { NULL, NULL },
+		  .warm_ids = { &rtl2832u_usb_table[79], NULL },
+		},
+
 	}
 };
 
@@ -1298,7 +1325,7 @@ static struct dvb_usb_device_properties rtl2832u_5th_properties = {
 
 	//remote control
 	.rc.legacy = {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,0,0)
+#ifdef V4L2_REFACTORED_RC_CODE
 		.rc_map_table = rtl2832u_rc_keys_map_table,             //user define key map
 		.rc_map_size  = ARRAY_SIZE(rtl2832u_rc_keys_map_table), //user define key map size	
 #else
@@ -1405,7 +1432,7 @@ static struct dvb_usb_device_properties rtl2832u_6th_properties = {
 
 	 /*remote control*/
 	.rc.legacy = {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,0,0)
+#ifdef V4L2_REFACTORED_RC_CODE
 		.rc_map_table = rtl2832u_rc_keys_map_table,             //user define key map
 		.rc_map_size  = ARRAY_SIZE(rtl2832u_rc_keys_map_table), //user define key map size	
 #else
@@ -1511,7 +1538,7 @@ static struct dvb_usb_device_properties rtl2832u_7th_properties = {
 
 	//remote control
 	.rc.legacy = {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,0,0)
+#ifdef V4L2_REFACTORED_RC_CODE
 		.rc_map_table = rtl2832u_rc_keys_map_table,             //user define key map
 		.rc_map_size  = ARRAY_SIZE(rtl2832u_rc_keys_map_table), //user define key map size	
 #else
@@ -1522,7 +1549,7 @@ static struct dvb_usb_device_properties rtl2832u_7th_properties = {
 		.rc_interval  = RT_RC_POLLING_INTERVAL_TIME_MS,		
 	},
 	
-	.num_device_descs = 9,
+	.num_device_descs = 10,
 	.devices = {
 		{ .name = "DVB-T TV Stick",
 		  .cold_ids = { NULL, NULL },
@@ -1562,6 +1589,10 @@ static struct dvb_usb_device_properties rtl2832u_7th_properties = {
 		  .name ="USB DVB-T Device",
 		  .cold_ids = { NULL, NULL },
 		  .warm_ids = { &rtl2832u_usb_table[62], NULL },
+		},
+		{ .name = "Leadtek WinFast DTV Dongle Mini",
+		  .cold_ids = { NULL, NULL },
+		  .warm_ids = { &rtl2832u_usb_table[76], NULL },
 		},
 
 		{ NULL },				
@@ -1612,7 +1643,7 @@ static struct dvb_usb_device_properties rtl2832u_8th_properties = {
 
 	//remote control
 	.rc.legacy = {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,0,0)
+#ifdef V4L2_REFACTORED_RC_CODE
 		.rc_map_table = rtl2832u_rc_keys_map_table,             //user define key map
 		.rc_map_size  = ARRAY_SIZE(rtl2832u_rc_keys_map_table), //user define key map size	
 #else
@@ -1713,7 +1744,7 @@ static struct dvb_usb_device_properties rtl2832u_9th_properties = {
 
 	//remote control
 	.rc.legacy = {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,0,0)
+#ifdef V4L2_REFACTORED_RC_CODE
 		.rc_map_table = rtl2832u_rc_keys_map_table,             //user define key map
 		.rc_map_size  = ARRAY_SIZE(rtl2832u_rc_keys_map_table), //user define key map size	
 #else

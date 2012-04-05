@@ -1,6 +1,7 @@
 #ifndef __RTL2832U_IOCTL_H__
 #define __RTL2832U_IOCTL_H__
 
+#include <linux/version.h>
 #include "rtl2832u_fe.h"
 #include "rtl2832u_io.h"
 
