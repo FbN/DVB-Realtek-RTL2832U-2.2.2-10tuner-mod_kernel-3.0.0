@@ -1,3 +1,11 @@
+2012-10-20
+As of Kernel 3.6 a driver for the RTL2832 demod is included in the mainline kernen source. It does not support all 
+of the devices as the driver provided by Realtek, but anyone may add new devices if their hardware is not supported
+yet.
+
+That means this repository will not be maintained anymore, as improvements in the code should go into the mainline
+kernel driver.
+
 2012-04-05
 
 Pulled modified source from openpli. The driver now compiles with Linux >= 3.3.0
